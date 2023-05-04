@@ -21,11 +21,7 @@ class Deployment(
         return deployedApplicationServices.contains(service)
     }
 
-    fun containsServiceName(serviceName: String): Boolean {
-        return deployedApplicationServices.stream().anyMatch { it.serviceName.equals(serviceName) }
-    }
-
-    fun retrieveByServiceNameIfExist(serviceName: String?) : ApplicationService?{
+    fun retrieveByServiceNameIfExist(serviceName: String?): ApplicationService? {
         return deployedApplicationServices.stream()
             .filter { it.serviceName.equals(serviceName) }
             .findFirst().orElse(null)

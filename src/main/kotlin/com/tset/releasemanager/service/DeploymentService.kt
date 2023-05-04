@@ -40,11 +40,11 @@ class DeploymentService(
                 services.remove(oldVersionService)
             }
             services.add(newService)
-            for (element in services){
-                println("Adding service ${element.serviceName} to new deployment")
+            for (element in services) {
+                logger.trace("Adding service ${element.serviceName} to new deployment")
                 newDeployment.addService(element)
             }
-            println("new deployment has ${newDeployment.deployedApplicationServices.size} services")
+            logger.trace("new deployment has ${newDeployment.deployedApplicationServices.size} services")
             newDeployment = deploymentRepository.save(newDeployment)
             return newDeployment.systemVersion
         }

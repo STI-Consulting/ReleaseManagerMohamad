@@ -7,5 +7,4 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ApplicationServiceRepository : JpaRepository<ApplicationService, Long>{
     fun findByServiceNameAndVersion(serviceName: String?, version: Int?): ApplicationService?
-    fun findByServiceName(serviceName: String): ApplicationService?
 }

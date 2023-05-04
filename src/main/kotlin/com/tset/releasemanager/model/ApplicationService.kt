@@ -4,7 +4,6 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.SequenceGenerator
 
 @Entity
@@ -15,9 +14,7 @@ class ApplicationService(
     var id: Long? = null,
     var serviceName: String?,
     var version: Int?,
-/*    @ManyToOne
-    var deployment: Deployment? = null,*/
-){
+) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
