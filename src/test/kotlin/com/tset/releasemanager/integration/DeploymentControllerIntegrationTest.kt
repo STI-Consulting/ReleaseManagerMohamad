@@ -84,7 +84,7 @@ class DeploymentControllerIntegrationTest {
 
     @Test
     fun shouldServicesForVersionNumber() {
-        val deployment = deploymentRepository.save(
+        deploymentRepository.save(
             Deployment(
                 systemVersion = 5, deployedApplicationServices = arrayListOf(
                     ApplicationService(serviceName = "Service A", version = 6)
