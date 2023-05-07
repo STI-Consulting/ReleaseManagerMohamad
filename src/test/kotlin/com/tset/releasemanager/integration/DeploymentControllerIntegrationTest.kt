@@ -25,7 +25,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @AutoConfigureMockMvc
-//@TestPropertySource(locations = ["classpath:application.properties"])
 class DeploymentControllerIntegrationTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -83,7 +82,7 @@ class DeploymentControllerIntegrationTest {
     }
 
     @Test
-    fun shouldServicesForVersionNumber() {
+    fun shouldRetrieveServicesForVersionNumber() {
         deploymentRepository.save(
             Deployment(
                 systemVersion = 5, deployedApplicationServices = arrayListOf(

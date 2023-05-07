@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface DeploymentRepository : JpaRepository<Deployment, Long> {
-
     fun findFirstByOrderBySystemVersionDesc(): Deployment?
     fun findBySystemVersion(systemVersion: Int): Deployment?
 }

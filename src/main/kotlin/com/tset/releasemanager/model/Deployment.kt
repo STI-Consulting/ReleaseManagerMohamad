@@ -13,18 +13,11 @@ class Deployment(
     @ManyToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     var deployedApplicationServices: MutableList<ApplicationService> = arrayListOf(),
 ) {
-    fun addService(service: ApplicationService) {
-        deployedApplicationServices.add(service)
-    }
-
-    fun containsService(service: ApplicationService?): Boolean {
-        return deployedApplicationServices.contains(service)
-    }
-
-    fun retrieveByServiceNameIfExist(serviceName: String?): ApplicationService? {
-        return deployedApplicationServices.stream()
-            .filter { it.serviceName.equals(serviceName) }
-            .findFirst().orElse(null)
+    fun copy(
+        systemVersion: Int? = this.systemVersion,
+        deployedApplicationServices: MutableList<ApplicationService> = this.deployedApplicationServices,
+    ): Deployment {
+        return Deployment(systemVersion = systemVersion, deployedApplicationServices = deployedApplicationServices)
     }
 
     override fun equals(other: Any?): Boolean {

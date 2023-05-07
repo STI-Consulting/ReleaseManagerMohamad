@@ -8,6 +8,8 @@ import com.tset.releasemanager.repository.DeploymentRepository
 import com.tset.releasemanager.repository.ApplicationServiceRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Isolation
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class DeploymentService(
@@ -16,48 +18,42 @@ class DeploymentService(
 ) {
     companion object : KLogging()
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     fun deployService(service: ServiceDto): Int? {
         val currentDeployment = deploymentRepository.findFirstByOrderBySystemVersionDesc()
-        println("retrieved current deployment: ${currentDeployment?.deployedApplicationServices?.size} element")
-        val deployedService = applicationServiceRepository.findByServiceNameAndVersion(service.name, service.version)
-        println("retrieved deployed service: ${deployedService?.serviceName} version: ${deployedService?.version}")
         val latestSystemVersion = currentDeployment?.systemVersion ?: 0
-        if (currentDeployment?.containsService(deployedService) == true) {
+        if (isServiceDeployed(currentDeployment, service)) {
             logger.info("Service ${service.name} with version ${service.version} is already deployed")
             return latestSystemVersion
-        } else {
-            logger.trace("Adding a new service: $service")
-            val newService = applicationServiceRepository.save(
-                ApplicationService(
-                    serviceName = service.name,
-                    version = service.version
-                )
-            )
-            var newDeployment = Deployment(systemVersion = latestSystemVersion.plus(1))
-            val services = currentDeployment?.deployedApplicationServices?.toMutableList() ?: arrayListOf()
-            val oldVersionService = currentDeployment?.retrieveByServiceNameIfExist(service.name)
-            if (oldVersionService != null) {
-                services.remove(oldVersionService)
-            }
-            services.add(newService)
-            for (element in services) {
-                logger.trace("Adding service ${element.serviceName} to new deployment")
-                newDeployment.addService(element)
-            }
-            logger.trace("new deployment has ${newDeployment.deployedApplicationServices.size} services")
-            newDeployment = deploymentRepository.save(newDeployment)
-            return newDeployment.systemVersion
         }
-
+        logger.trace("Adding a new service: $service")
+        val newService =
+            applicationServiceRepository.save(ApplicationService(serviceName = service.name, version = service.version))
+        val updatedDeployment = currentDeployment?.copy(
+            systemVersion = latestSystemVersion.plus(1),
+            deployedApplicationServices = currentDeployment.deployedApplicationServices
+                .filterNot { it.serviceName == service.name }
+                .plus(newService)
+                .toMutableList()
+        ) ?: Deployment(
+            systemVersion = latestSystemVersion.plus(1),
+            deployedApplicationServices = mutableListOf(newService)
+        )
+        return deploymentRepository.save(updatedDeployment).systemVersion
     }
 
     fun getAllServicesForVersionNumber(systemVersion: Int): DeploymentDto {
-        val deployment = deploymentRepository.findBySystemVersion(systemVersion)
-        val services = deployment?.deployedApplicationServices ?: arrayListOf()
-        val servicesDto = arrayListOf<ServiceDto>()
-        for (service in services) {
-            servicesDto.add(ServiceDto(service.serviceName, service.version))
-        }
-        return DeploymentDto(servicesDto)
+        return deploymentRepository.findBySystemVersion(systemVersion)
+            ?.deployedApplicationServices
+            .orEmpty()
+            .map { ServiceDto(it.serviceName, it.version) }
+            .toMutableList()
+            .let(::DeploymentDto)
+    }
+
+    private fun isServiceDeployed(currentDeployment: Deployment?, service: ServiceDto): Boolean {
+        return currentDeployment?.deployedApplicationServices
+            ?.any { it.serviceName == service.name && it.version == service.version }
+            ?: false
     }
 }
